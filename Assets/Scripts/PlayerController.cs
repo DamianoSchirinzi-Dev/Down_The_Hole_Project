@@ -14,7 +14,10 @@ public class PlayerController : MonoBehaviour
     private float verticalInput;
 
     public float movementSpeed = 5f;
+    public float sprintSpeed = 10f;
+    private float movementOriginalSpeed = 5f;
     public float jumpForce = 5f;
+    public float gravity;
     public float rotationSpeed = 5f;
 
     public float fallTime = 0f;
@@ -29,6 +32,8 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         _timeManager = _managers.GetComponent<TimeManager>();
+
+        movementOriginalSpeed = movementSpeed;
     }
 
     private void FixedUpdate()
@@ -45,6 +50,14 @@ public class PlayerController : MonoBehaviour
         {
             horizontalInput = Input.GetAxisRaw("Horizontal");
             verticalInput = Input.GetAxisRaw("Vertical");
+
+            if (Input.GetButton("Sprint"))
+            {
+                movementSpeed = sprintSpeed;
+            } else
+            {
+                movementSpeed = movementOriginalSpeed;
+            }
 
             if(isJumping)
             {
@@ -87,13 +100,15 @@ public class PlayerController : MonoBehaviour
         Vector3 movement = cameraForward * verticalInput + cameraRight * horizontalInput;
         movement.Normalize();
 
+        var additionGravity = gravity * Time.deltaTime;
+
         // Apply movement to the rigidbody
-        rb.velocity = new Vector3(movement.x * movementSpeed, rb.velocity.y, movement.z * movementSpeed);
+        rb.velocity = new Vector3(movement.x * movementSpeed, rb.velocity.y - additionGravity, movement.z * movementSpeed);
 
         if (movement != Vector3.zero)
         {
             Quaternion toRotation = Quaternion.LookRotation(movement, Vector3.up);
-            transform.rotation = Quaternion.Lerp(transform.rotation, toRotation, rotationSpeed * Time.fixedDeltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, toRotation, rotationSpeed * Time.fixedDeltaTime);
         }
     }
 

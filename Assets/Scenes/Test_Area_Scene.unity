@@ -684,7 +684,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e7a391fbc8ce4046a32779a74095d44, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  slowdownFactor: 0.05
+  slowdownFactor: 0.35
 --- !u!4 &1640749773
 Transform:
   m_ObjectHideFlags: 0
@@ -861,10 +861,12 @@ MonoBehaviour:
   _managers: {fileID: 1640749771}
   playerCamera: {fileID: 1663138753}
   movementSpeed: 5
-  jumpForce: 300
-  rotationSpeed: 12
+  sprintSpeed: 10
+  jumpForce: 420
+  gravity: 7
+  rotationSpeed: 15
   fallTime: 0
-  fallShields: 0
+  fallShields: 3
   isJumping: 0
 --- !u!65 &1840593821
 BoxCollider:
