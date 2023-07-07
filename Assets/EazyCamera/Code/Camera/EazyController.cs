@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace EazyCamera
@@ -22,41 +23,21 @@ namespace EazyCamera
             {
                 _controlledCamera.IncreaseZoomDistance(scrollDelta, dt);
             }
-
-            float horz = Input.GetAxis(Util.MouseX);
-            float vert = Input.GetAxis(Util.MouseY);
-            _controlledCamera.IncreaseRotation(horz, vert, dt);
-
+            
             if (Input.GetKeyDown(KeyCode.R))
             {
                 _controlledCamera.ResetPositionAndRotation();
-            }
-
-
-            if (Input.GetKeyUp(KeyCode.T))
-            {
-                ToggleLockOn();
-            }
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                CycleTargets();
-            }
-
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                CycleLeft();
-            }
-
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                CycleRight();
             }
         }
 
         public void SetControlledCamera(EazyCam cam)
         {
             _controlledCamera = cam;
+        }
+
+        public void ControlCameraRotation(Vector2 lookVector, float dt, bool isControllerConnected)
+        {
+            _controlledCamera.IncreaseRotation(lookVector.x, lookVector.y, dt, isControllerConnected);
         }
 
         private void ToggleLockOn()

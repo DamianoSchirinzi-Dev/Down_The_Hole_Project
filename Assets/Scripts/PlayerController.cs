@@ -6,12 +6,8 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public GameObject _managers;
-    private TimeManager _timeManager;
     private Rigidbody rb;
     public Camera playerCamera;
-
-    private float horizontalInput;
-    private float verticalInput;
 
     public float movementSpeed = 5f;
     public float sprintSpeed = 10f;
@@ -23,35 +19,29 @@ public class PlayerController : MonoBehaviour
     public float fallTime = 0f;
     public int fallShields = 3;
 
+    public bool isSprinting { get; set; } = false;
     public bool isJumping = false;
-    private bool isPaused = false;
-    private bool isDead = false;
-    private bool canInteract = false;
+    public bool isPaused = false;
+    public bool isDead = false;
+    public bool canInteract = false;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        _timeManager = _managers.GetComponent<TimeManager>();
 
         movementOriginalSpeed = movementSpeed;
     }
 
     private void FixedUpdate()
     {
-        if (!isPaused || !isDead)
-        {
-            Move();
-        }
+       
     }
 
     private void Update()
     {
         if (!isPaused || !isDead)
         {
-            horizontalInput = Input.GetAxisRaw("Horizontal");
-            verticalInput = Input.GetAxisRaw("Vertical");
-
-            if (Input.GetButton("Sprint"))
+            if (isSprinting)
             {
                 movementSpeed = sprintSpeed;
             } else
@@ -63,30 +53,10 @@ public class PlayerController : MonoBehaviour
             {
                 fallTime += Time.deltaTime;
             }
-
-            // Jump input
-            if (Input.GetButtonDown("Jump") && !isJumping)
-            {
-                Jump();
-            }
-
-            if (Input.GetButton("Fire1"))
-            {
-                _timeManager.DoSlowMoTime();
-            }
-            else
-            {
-                _timeManager.StopSlowMoTime();
-            }
-
-            if (Input.GetButtonDown("Interact") && canInteract == true)
-            {
-                Interact();
-            }
         }
     }
 
-    private void Move()
+    public void Move(Vector2 userInput)
     {
         // Calculate movement direction relative to the camera
         Vector3 cameraForward = playerCamera.transform.forward;
@@ -97,7 +67,7 @@ public class PlayerController : MonoBehaviour
         cameraRight.Normalize();
 
         // Calculate movement vector
-        Vector3 movement = cameraForward * verticalInput + cameraRight * horizontalInput;
+        Vector3 movement = cameraForward * userInput.y + cameraRight * userInput.x;
         movement.Normalize();
 
         var additionGravity = gravity * Time.deltaTime;
@@ -112,13 +82,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void Jump()
+    public void Jump()
     {
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         isJumping = true;
     }
 
-    private void Interact()
+    public void Interact()
     {
         Debug.Log("The player just interacted with something!");
     }

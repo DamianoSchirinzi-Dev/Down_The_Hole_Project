@@ -218,8 +218,17 @@ namespace EazyCamera
             _rotation.y = horzRot;
         }
 
-        public void IncreaseRotation(float horzRotDelta, float vertRotDelta, float deltaTime)
+        public void IncreaseRotation(float horzRotDelta, float vertRotDelta, float deltaTime, bool isControllerConnected)
         {
+            if(isControllerConnected)
+            {
+                _settings.RotationSpeed = 200;
+            }
+            else
+            {
+                _settings.RotationSpeed = 10;
+            }
+
             if (_settings.OrbitEnabled)
             {
                 float step = deltaTime * _settings.RotationSpeed;
