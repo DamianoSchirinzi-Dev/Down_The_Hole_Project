@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Ground
   - Interact-able
+  - Ledge
+  - Pick-up
   layers:
   - Default
   - TransparentFX

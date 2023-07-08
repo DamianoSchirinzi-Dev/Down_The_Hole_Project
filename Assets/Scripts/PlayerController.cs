@@ -9,19 +9,27 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     public Camera playerCamera;
 
+    public Transform groundCheck;
+    public Transform ledgeCheckRayTransform;
+    public float rayCheckDist;
+
     public float movementSpeed = 5f;
     public float sprintSpeed = 10f;
     private float movementOriginalSpeed = 5f;
     public float jumpForce = 5f;
     public float gravity;
+    public float lowGravity;
+    private float originalGravity;
     public float rotationSpeed = 5f;
 
     public float fallTime = 0f;
     public int fallShields = 3;
 
     public bool isSprinting { get; set; } = false;
-    public bool isJumping = false;
+    public bool isGrounded = false;
+    public bool isLedgeHanging = false;
     public bool isPaused = false;
+    public bool isLowGravityBuffActive = false;
     public bool isDead = false;
     public bool canInteract = false;
 
@@ -30,17 +38,15 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         movementOriginalSpeed = movementSpeed;
-    }
-
-    private void FixedUpdate()
-    {
-       
+        originalGravity = gravity;
     }
 
     private void Update()
     {
         if (!isPaused || !isDead)
         {
+            isGrounded = CheckGround();
+
             if (isSprinting)
             {
                 movementSpeed = sprintSpeed;
@@ -49,9 +55,19 @@ public class PlayerController : MonoBehaviour
                 movementSpeed = movementOriginalSpeed;
             }
 
-            if(isJumping)
+            if (!isGrounded && !isLedgeHanging)
             {
                 fallTime += Time.deltaTime;
+                DetectLedge();
+            }
+
+            if (isLowGravityBuffActive)
+            {
+                gravity = lowGravity;
+            }
+            else
+            {
+                gravity = originalGravity;
             }
         }
     }
@@ -82,10 +98,91 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void DetectLedge()
+    {
+        Ray ledgeCheckRay = new Ray(ledgeCheckRayTransform.position, ledgeCheckRayTransform.forward);
+        Vector3 standingPointBonusVector = (transform.forward * 0.6f) + (Vector3.up * 0.5f);
+
+        RaycastHit ledgeHit;
+
+        if (Physics.Raycast(ledgeCheckRay, out ledgeHit, rayCheckDist))
+        {
+            if (ledgeHit.collider.CompareTag("Ledge"))
+            {
+                Debug.Log("Ledge found!");
+
+                ClimbLedge(ledgeHit.point + standingPointBonusVector);
+            }
+        }
+
+        Debug.DrawRay(ledgeCheckRay.origin, ledgeCheckRay.direction * rayCheckDist, Color.red);
+    }
+
+    private void ClimbLedge(Vector3 newPos)
+    {
+        isPaused = true;
+        isLedgeHanging = true;
+        rb.isKinematic = true;
+        fallTime = 0;
+
+        StartCoroutine(MovePlayerToLedge(newPos));
+    }
+
+    private IEnumerator MovePlayerToLedge(Vector3 _newPos)
+    {
+        yield return new WaitForSeconds(2);
+        transform.position = _newPos;
+        yield return new WaitForSeconds(1);
+        rb.isKinematic = false;
+        isLedgeHanging = false;
+        isPaused = false;
+    }
+
+    private bool CheckGround()
+    {
+        float groundCheckDistance = 0.1f; // Distance to check below the object
+
+        // Perform a raycast or a raycast-like check to detect the ground
+        RaycastHit hit;
+        if (Physics.Raycast(groundCheck.position, Vector3.down, out hit, groundCheckDistance))
+        {
+            // The object is grounded
+            if (hit.collider.CompareTag("Ground"))
+            {
+                if (fallTime > 8f)
+                {
+                    TakeDamage(4);
+                }
+                else if (fallTime > 6f)
+                {
+                    TakeDamage(3);
+                }
+                else if (fallTime > 4f)
+                {
+                    TakeDamage(2);
+                }
+                else if (fallTime > 2f)
+                {
+                    TakeDamage(1);
+                }
+
+                fallTime = 0f;             
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        // The object is not grounded
+        return false;
+    }
+
     public void Jump()
     {
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        isJumping = true;
+        isGrounded = false;
     }
 
     public void Interact()
@@ -134,49 +231,6 @@ public class PlayerController : MonoBehaviour
 
         isPaused = false;
         isDead= false;
-    }
-
-    public void PausePlayerMovement()
-    {
-        isPaused = true;
-    }
-
-    public void UnpausePlayerMovement()
-    {
-        isPaused = false;
-    }
-    private void OnCollisionEnter(Collision collision)
-    {
-        // Reset jump state on collision with the ground
-        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Interact-able"))
-        {
-            if(fallTime > 8f)
-            {
-                TakeDamage(4);
-            }
-            else if( fallTime > 6f) 
-            {
-                TakeDamage(3);
-            } else if( fallTime > 4f)
-            {
-                TakeDamage(2);
-            } else if (fallTime > 2f)
-            {
-                TakeDamage(1);
-            }
-
-            isJumping = false;
-            fallTime = 0f;
-        }
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isJumping = true;
-            fallTime = 0f;
-        }
     }
 
     private void OnTriggerEnter(Collider other)

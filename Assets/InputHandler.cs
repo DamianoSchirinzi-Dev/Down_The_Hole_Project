@@ -39,7 +39,11 @@ public class InputHandler : MonoBehaviour
     void Update()
     {
         // our update loop polls the "move" action value each frame
-        _moveVector = moveAction.ReadValue<Vector2>();
+        if (!playerController.isPaused)
+        {
+            _moveVector = moveAction.ReadValue<Vector2>();
+        }
+
         _lookVector = lookAction.ReadValue<Vector2>();
 
         CheckIfControllerConnected();
@@ -74,7 +78,7 @@ public class InputHandler : MonoBehaviour
 
     private void OnJump(InputAction.CallbackContext context)
     {
-        if (!playerController.isJumping)
+        if (playerController.isGrounded)
         {
             playerController.Jump();
         }
