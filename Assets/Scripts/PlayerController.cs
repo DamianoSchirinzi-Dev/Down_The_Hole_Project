@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour
     public float lowGravity;
     private float originalGravity;
     public float rotationSpeed = 5f;
+    public float groundCheckDistance = .5f;
 
     public float fallTime = 0f;
     public int fallShields = 3;
@@ -140,8 +141,7 @@ public class PlayerController : MonoBehaviour
 
     private bool CheckGround()
     {
-        float groundCheckDistance = 0.1f; // Distance to check below the object
-
+       
         // Perform a raycast or a raycast-like check to detect the ground
         RaycastHit hit;
         if (Physics.Raycast(groundCheck.position, Vector3.down, out hit, groundCheckDistance))
@@ -198,8 +198,6 @@ public class PlayerController : MonoBehaviour
             if(_damageTaken > fallShields)
             {
                 fallShields = 0;
-
-                Death();
             }
             else
             {
@@ -208,7 +206,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            Death();
         }
     }
 
